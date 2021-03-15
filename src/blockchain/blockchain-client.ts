@@ -46,15 +46,15 @@ export class BlockchainClient {
       .then((json: any) => json[0].height);
   }
 
-  public static Initialize(nodeApiUrl: string) {
+  public static initialize(nodeApiUrl: string) {
     return new BlockchainClient(nodeApiUrl, '');
   }
 
-  public static InitializeByBrid(nodeApiUrl: string, brid: string) {
+  public static initializeByBrid(nodeApiUrl: string, brid: string) {
     return new BlockchainClient(nodeApiUrl, brid);
   }
 
-  public static InitializeByChainId(nodeApiUrl: string, chainId: number) {
+  public static initializeByChainId(nodeApiUrl: string, chainId: number) {
     return new BlockchainClient(nodeApiUrl, '', chainId);
   }
 

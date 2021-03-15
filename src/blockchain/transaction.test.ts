@@ -1,7 +1,7 @@
 import {BlockchainClient} from "./blockchain-client";
 
 describe('Transaction', () => {
-  const blockchainClient = BlockchainClient.Initialize('http://127.0.0.1:7740');
+  const blockchainClient = BlockchainClient.initialize('http://127.0.0.1:7740');
 
   describe('Transaction Builder',  () => {
     it('should be able to create a transaction successfully', async () => {

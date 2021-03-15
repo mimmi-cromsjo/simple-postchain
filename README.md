@@ -8,13 +8,13 @@ The client will then fetch the BRID from the chain with id 0. If you need a diff
 import { BlockchainClient } from "simple-postchain";
 
 // Initialize a client by Blockchain RID (BRID)
-const client = BlockchainClient.InitializeByBrid('http://127.0.0.1:7740', '898C57DA662CE388FDA9C2DACB1FEA2D983B3097E83FFD68F51E959B6A4BCD0B');
+const client = BlockchainClient.initializeByBrid('http://127.0.0.1:7740', '898C57DA662CE388FDA9C2DACB1FEA2D983B3097E83FFD68F51E959B6A4BCD0B');
 
 // Initialize a client by chainId
-const client2 = BlockchainClient.InitializeByBrid('http://127.0.0.1:7740', 1);
+const client2 = BlockchainClient.initializeByBrid('http://127.0.0.1:7740', 1);
 
 // Initialize without BRID or chainId
-const client3 = BlockchainClient.Initialize('http://127.0.0.1:7740');
+const client3 = BlockchainClient.initialize('http://127.0.0.1:7740');
 ```
 
 Querying is done via BlockchainClient. You can add `0..*` parameters to the query.
