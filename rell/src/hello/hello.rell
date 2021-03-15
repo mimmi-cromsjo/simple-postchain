@@ -1,0 +1,3 @@
+query say_hello (name): text {
+    return "Hello " + name + "!";
+}

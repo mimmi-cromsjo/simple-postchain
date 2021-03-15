@@ -1,0 +1,18 @@
+# Development resources
+rell/
+docker/
+.husky/
+.idea/
+node_modules/
+
+.eslintrc.js
+.prettierrc.js
+tsconfig.json
+bitbucket-pipelines.yml
+config.json
+Dockerfile
+jest.config.js
+.idea
+
+src
+.*.test.

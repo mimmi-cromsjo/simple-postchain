@@ -1,0 +1,44 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Continuous Integration
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Start containers
+        run: docker-compose up -d --build
+        working-directory: docker
+
+      - name: Wait for startup
+        uses: jakejarvis/wait-action@master
+        with:
+          time: "15s"
+
+      - name: Add RID to .env
+        run: ./add-rid-to-env.sh
+        working-directory: docker
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run tests
+        run: npm test

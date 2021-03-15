@@ -1,0 +1,24 @@
+entity account {
+  key pubkey;
+  mutable balance: integer;
+}
+
+operation create_account(pubkey) {
+  require(is_signer(pubkey));
+  create account(pubkey, 20);
+}
+
+operation transfer_balance(from: pubkey, to: pubkey, balance: integer) {
+  require(is_signer(from));
+  val from_acc = account @{ from };
+  require(from_acc.balance >= balance);
+
+  val to_acc = account @{ to };
+
+  from_acc.balance -= balance;
+  to_acc.balance += balance;
+}
+
+query get_balance(pubkey): integer {
+  return account @{ pubkey } ( .balance );
+}
