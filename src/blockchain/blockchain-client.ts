@@ -1,9 +1,9 @@
-import {Query} from "./query";
-import {KeyPair} from "./key-pair";
-import {Transaction} from "./transaction";
+import { Query } from './query';
+import { KeyPair } from './key-pair';
+import { Transaction } from './transaction';
 
 const pc = require('postchain-client');
-const fetch = require("node-fetch");
+const fetch = require('node-fetch');
 
 export class BlockchainClient {
   private readonly nodeUrl: string;
@@ -11,7 +11,7 @@ export class BlockchainClient {
   private readonly restClient: Promise<any>;
   private readonly gtx: Promise<any>;
 
-  private constructor(nodeApiUrl: string, blockchainRid: string = '', chainId: number = 0) {
+  private constructor(nodeApiUrl: string, blockchainRid = '', chainId = 0) {
     this.nodeUrl = nodeApiUrl;
 
     if (!blockchainRid) {
@@ -21,14 +21,16 @@ export class BlockchainClient {
     }
 
     this.restClient = this.brid.then((rid: string) => pc.restClient.createRestClient(nodeApiUrl, rid, 5));
-    this.gtx = Promise
-      .all([this.brid, this.restClient])
-      .then((promises) => pc.gtxClient.createClient(promises[1], Buffer.from(promises[0], 'hex'), []))
+    this.gtx = Promise.all([this.brid, this.restClient]).then((promises) => pc.gtxClient.createClient(promises[1], Buffer.from(promises[0], 'hex'), []));
   }
 
-  public createKeyPair(): KeyPair {
+  public createKeyPair(privateKey?: string): KeyPair {
+    if (privateKey) {
+      const key = Buffer.from(privateKey, 'hex');
+      return { privateKey: key, publicKey: pc.util.createPublicKey(key) };
+    }
     const kp = pc.util.makeKeyPair();
-    return {publicKey: pc.util.toBuffer(kp.pubKey), privateKey: pc.util.toBuffer(kp.privKey)};
+    return { publicKey: pc.util.toBuffer(kp.pubKey), privateKey: pc.util.toBuffer(kp.privKey) };
   }
 
   public query<T>(): Query<T> {
@@ -39,22 +41,24 @@ export class BlockchainClient {
     return Transaction.init(this.gtx);
   }
 
-  public getBlockHeight(): Promise<number> {
-    const url = `${this.nodeUrl}/blocks/${this.brid}??limit=1`;
+  public async getBlockHeight(): Promise<number> {
+    const rid = await this.brid;
+    const url = `${this.nodeUrl}/blocks/${rid}??limit=1`;
+
     return fetch(url)
       .then((response: any) => response.json())
       .then((json: any) => json[0].height);
   }
 
-  public static initialize(nodeApiUrl: string) {
+  public static initialize(nodeApiUrl: string): BlockchainClient {
     return new BlockchainClient(nodeApiUrl, '');
   }
 
-  public static initializeByBrid(nodeApiUrl: string, brid: string) {
+  public static initializeByBrid(nodeApiUrl: string, brid: string): BlockchainClient {
     return new BlockchainClient(nodeApiUrl, brid);
   }
 
-  public static initializeByChainId(nodeApiUrl: string, chainId: number) {
+  public static initializeByChainId(nodeApiUrl: string, chainId: number): BlockchainClient {
     return new BlockchainClient(nodeApiUrl, '', chainId);
   }
 
