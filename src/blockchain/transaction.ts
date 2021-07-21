@@ -8,12 +8,12 @@ import { KeyPair } from './key-pair';
 export class Transaction {
   private readonly gtx: Promise<any>;
   private readonly operations: Operation[];
-  // @ts-ignore
-  private keyPair: KeyPair;
+  private signers: Set<KeyPair>;
 
   private constructor(gtx: Promise<any>) {
     this.gtx = gtx;
     this.operations = [];
+    this.signers = new Set<KeyPair>();
   }
 
   public static init(gtx: any): Transaction {
@@ -34,16 +34,17 @@ export class Transaction {
   }
 
   public sign(keyPair: KeyPair): Transaction {
-    this.keyPair = keyPair;
+    this.signers.add(keyPair);
     return this;
   }
 
   public send(): Promise<any> {
     return this.gtx.then((client) => {
-      const rq = client.newTransaction([this.keyPair.publicKey]);
+      const signersArr = Array.from(this.signers.values());
+      const rq = client.newTransaction(signersArr.map((kp) => kp.publicKey));
 
       this.operations.forEach((op) => rq.addOperation(op.name, ...op.data));
-      rq.sign(this.keyPair.privateKey, this.keyPair.publicKey);
+      signersArr.forEach((kp) => rq.sign(kp.privateKey, kp.publicKey));
 
       return rq.postAndWaitConfirmation();
     });
