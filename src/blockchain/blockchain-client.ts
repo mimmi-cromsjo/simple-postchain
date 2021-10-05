@@ -16,6 +16,8 @@ export class BlockchainClient {
     this.nodeUrl = nodeApiUrl;
     this.brid = blockchainRid;
     this.chainId = chainId;
+
+    this.clientRetriever = this.clientRetriever.bind(this);
   }
 
   public createKeyPair(privateKey?: string): KeyPair {
@@ -28,7 +30,7 @@ export class BlockchainClient {
   }
 
   public query<T>(): Query<T> {
-    return Query.init<T>(this.gtx);
+    return Query.init<T>(this.clientRetriever);
   }
 
   public transaction(): Transaction {
@@ -70,18 +72,22 @@ export class BlockchainClient {
     });
   }
 
-  private async clientRetriever(): Promise<any> {
-    if (this.gtx) return this.gtx;
-
-    await this.ensureBrid();
-    this.gtx = pc.gtxClient.createClient(this.nodeUrl, Buffer.from(this.brid, 'hex'), []);
-
-    return this.gtx;
-  }
-
   private async ensureBrid(): Promise<void> {
     if (!this.brid) {
       this.brid = await BlockchainClient.getBrid(this.nodeUrl, this.chainId);
     }
+  }
+
+  private async clientRetriever(): Promise<any> {
+    if (this.gtx) return this.gtx;
+
+    if (!this.brid) {
+      this.brid = await BlockchainClient.getBrid(this.nodeUrl, this.chainId);
+    }
+
+    const rest = pc.restClient.createRestClient(this.nodeUrl, this.brid, 5);
+    this.gtx = pc.gtxClient.createClient(rest, Buffer.from(this.brid, 'hex'), []);
+
+    return this.gtx;
   }
 }

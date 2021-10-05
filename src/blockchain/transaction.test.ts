@@ -4,7 +4,7 @@ describe('Transaction', () => {
   const blockchainClient = BlockchainClient.initialize('http://127.0.0.1:7740');
 
   describe('Transaction Builder', () => {
-    it('should be able to create a transaction successfully', async () => {
+    it('should be able to create a transaction', async () => {
       const user1 = blockchainClient.createKeyPair();
       const user2 = blockchainClient.createKeyPair();
 

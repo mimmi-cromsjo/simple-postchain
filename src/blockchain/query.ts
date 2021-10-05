@@ -1,18 +1,19 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 export class Query<T> {
-  private readonly gtx: Promise<any>;
+  private readonly gtxRetriever: () => any;
   private readonly parameters: Map<string, unknown>;
 
   // @ts-ignore
   private queryName: string = null;
 
-  private constructor(gtx: Promise<any>) {
-    this.gtx = gtx;
+  private constructor(gtxRetriever: () => any) {
+    this.gtxRetriever = gtxRetriever;
     this.parameters = new Map<string, unknown>();
   }
 
-  public static init<T>(gtx: any): Query<T> {
-    return new Query(gtx);
-  };
+  public static init<T>(gtxRetriever: () => any): Query<T> {
+    return new Query(gtxRetriever);
+  }
 
   public name(queryName: string): Query<T> {
     this.queryName = queryName;
@@ -24,11 +25,11 @@ export class Query<T> {
     return this;
   }
 
-  public send(): Promise<T> {
+  public async send(): Promise<T> {
     const obj = {};
     // @ts-ignore
-    this.parameters.forEach((value: unknown, key: string) => obj[key] = value);
-    return this.gtx.then(client => client.query(this.queryName, obj));
+    this.parameters.forEach((value: unknown, key: string) => (obj[key] = value));
+    const gtx = await this.gtxRetriever();
+    return gtx.query(this.queryName, obj);
   }
-
 }
