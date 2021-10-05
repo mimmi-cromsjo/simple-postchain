@@ -7,21 +7,15 @@ const fetch = require('node-fetch');
 
 export class BlockchainClient {
   private readonly nodeUrl: string;
-  private readonly brid: Promise<string>;
-  private readonly restClient: Promise<any>;
-  private readonly gtx: Promise<any>;
+  private readonly chainId: number;
+
+  private brid: string;
+  private gtx: any;
 
   private constructor(nodeApiUrl: string, blockchainRid = '', chainId = 0) {
     this.nodeUrl = nodeApiUrl;
-
-    if (!blockchainRid) {
-      this.brid = BlockchainClient.getBrid(nodeApiUrl, chainId);
-    } else {
-      this.brid = Promise.resolve(blockchainRid);
-    }
-
-    this.restClient = this.brid.then((rid: string) => pc.restClient.createRestClient(nodeApiUrl, rid, 5));
-    this.gtx = Promise.all([this.brid, this.restClient]).then((promises) => pc.gtxClient.createClient(promises[1], Buffer.from(promises[0], 'hex'), []));
+    this.brid = blockchainRid;
+    this.chainId = chainId;
   }
 
   public createKeyPair(privateKey?: string): KeyPair {
@@ -38,10 +32,16 @@ export class BlockchainClient {
   }
 
   public transaction(): Transaction {
-    return Transaction.init(this.gtx);
+    return Transaction.init(this.clientRetriever);
+  }
+
+  public fromRawTx(rawTx: string): Transaction {
+    return Transaction.initFromRawTx(this.clientRetriever, rawTx);
   }
 
   public async getBlockHeight(): Promise<number> {
+    await this.ensureBrid();
+
     const rid = await this.brid;
     const url = `${this.nodeUrl}/blocks/${rid}??limit=1`;
 
@@ -68,5 +68,20 @@ export class BlockchainClient {
       if (response.ok) return response.text();
       throw new Error(`Error resolving BRID for chainId ${chainId}, reason: ${response.statusText}`);
     });
+  }
+
+  private async clientRetriever(): Promise<any> {
+    if (this.gtx) return this.gtx;
+
+    await this.ensureBrid();
+    this.gtx = pc.gtxClient.createClient(this.nodeUrl, Buffer.from(this.brid, 'hex'), []);
+
+    return this.gtx;
+  }
+
+  private async ensureBrid(): Promise<void> {
+    if (!this.brid) {
+      this.brid = await BlockchainClient.getBrid(this.nodeUrl, this.chainId);
+    }
   }
 }

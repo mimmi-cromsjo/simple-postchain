@@ -6,18 +6,24 @@ import { uuidv4 } from '../utils/uuidv4';
 import { KeyPair } from './key-pair';
 
 export class Transaction {
-  private readonly gtx: Promise<any>;
+  private readonly gtx: () => any;
   private readonly operations: Operation[];
-  private signers: Set<KeyPair>;
+  private readonly signers: Set<KeyPair>;
+  private readonly rawTx?: string;
 
-  private constructor(gtx: Promise<any>) {
+  private constructor(gtx: any, rawTx?: string) {
     this.gtx = gtx;
     this.operations = [];
     this.signers = new Set<KeyPair>();
+    this.rawTx = rawTx;
   }
 
-  public static init(gtx: any): Transaction {
-    return new Transaction(gtx);
+  public static init(gtx: () => any): Transaction {
+    return new Transaction(gtx, undefined);
+  }
+
+  public static initFromRawTx(gtx: () => any, rawTx: string): Transaction {
+    return new Transaction(gtx, rawTx);
   }
 
   public addOperation(name: string, ...args: any): Transaction {
@@ -38,16 +44,22 @@ export class Transaction {
     return this;
   }
 
-  public send(): Promise<any> {
-    return this.gtx.then((client) => {
-      const signersArr = Array.from(this.signers.values());
-      const rq = client.newTransaction(signersArr.map((kp) => kp.publicKey));
+  public async send(): Promise<any> {
+    const client = await this.gtx();
+    const signersArr = Array.from(this.signers.values());
 
-      this.operations.forEach((op) => rq.addOperation(op.name, ...op.data));
-      signersArr.forEach((kp) => rq.sign(kp.privateKey, kp.publicKey));
+    let tx: any = null;
 
-      return rq.postAndWaitConfirmation();
-    });
+    if (!this.rawTx) {
+      tx = client.newTransaction(signersArr.map((kp) => kp.publicKey));
+      this.operations.forEach((op) => tx.addOperation(op.name, ...op.data));
+    } else {
+      tx = client.transactionFromRawTransaction(this.rawTx);
+    }
+
+    signersArr.forEach((kp) => tx.sign(kp.privateKey, kp.publicKey));
+
+    return tx.postAndWaitConfirmation();
   }
 }
 
