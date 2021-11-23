@@ -56,7 +56,7 @@ export class Transaction {
       tx = gtx.newTransaction(signersArr.map((kp) => kp.publicKey));
       this.operations.forEach((op) => tx.addOperation(op.name, ...op.data));
     } else {
-      tx = gtx.transactionFromRawTransaction(this.rawTx);
+      tx = gtx.transactionFromRawTransaction(Buffer.from(this.rawTx, 'hex'));
     }
 
     signersArr.forEach((kp) => tx.sign(kp.privateKey, kp.publicKey));
