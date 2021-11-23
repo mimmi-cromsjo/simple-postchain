@@ -47,7 +47,6 @@ export class Transaction {
   public async send(): Promise<any> {
     const gtx = await this.gtxRetriever();
 
-    console.log('GTX: ', gtx);
     const signersArr = Array.from(this.signers.values());
 
     let tx: any = null;
