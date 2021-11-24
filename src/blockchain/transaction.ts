@@ -4,26 +4,40 @@
 
 import { uuidv4 } from '../utils/uuidv4';
 import { KeyPair } from './key-pair';
+const pc = require('postchain-client');
 
 export class Transaction {
   private readonly gtxRetriever: () => any;
   private readonly operations: Operation[];
   private readonly signers: Set<KeyPair>;
-  private readonly rawTx?: string;
 
-  private constructor(gtxRetriever: () => any, rawTx?: string) {
+  private rawTxSigners: Buffer[];
+  private rawTxSignatures: Buffer[];
+
+  private constructor(gtxRetriever: () => any) {
     this.gtxRetriever = gtxRetriever;
     this.operations = [];
+    this.rawTxSigners = [];
+    this.rawTxSignatures = [];
     this.signers = new Set<KeyPair>();
-    this.rawTx = rawTx;
   }
 
   public static init(gtx: () => any): Transaction {
-    return new Transaction(gtx, undefined);
+    return new Transaction(gtx);
   }
 
   public static initFromRawTx(gtxRetriever: () => any, rawTx: string): Transaction {
-    return new Transaction(gtxRetriever, rawTx);
+    const deserializedTx = pc.gtx.deserialize(Buffer.from(rawTx, 'hex'));
+    const tx = new Transaction(gtxRetriever);
+
+    deserializedTx.operations.map((operation: any) => {
+      tx.addOperation(operation.opName, ...operation.args);
+    });
+
+    tx.rawTxSigners = deserializedTx.signers;
+    tx.rawTxSignatures = deserializedTx.signatures;
+
+    return tx;
   }
 
   public addOperation(name: string, ...args: any): Transaction {
@@ -49,14 +63,10 @@ export class Transaction {
 
     const signersArr = Array.from(this.signers.values());
 
-    let tx: any = null;
+    const tx = gtx.newTransaction(this.rawTxSigners.length > 0 ? this.rawTxSigners : signersArr.map((kp) => kp.publicKey));
+    this.operations.forEach((op) => tx.addOperation(op.name, ...op.data));
 
-    if (!this.rawTx) {
-      tx = gtx.newTransaction(signersArr.map((kp) => kp.publicKey));
-      this.operations.forEach((op) => tx.addOperation(op.name, ...op.data));
-    } else {
-      tx = gtx.transactionFromRawTransaction(Buffer.from(this.rawTx, 'hex'));
-    }
+    tx.gtx.signatures = this.rawTxSignatures.length > 1 ? this.rawTxSignatures : this.rawTxSignatures.concat(signersArr.map(() => Buffer.alloc(0)));
 
     signersArr.forEach((kp) => tx.sign(kp.privateKey, kp.publicKey));
 
