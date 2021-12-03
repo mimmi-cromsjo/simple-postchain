@@ -31,14 +31,14 @@ jobs:
       - name: Wait for startup
         uses: jakejarvis/wait-action@master
         with:
-          time: "15s"
+          time: '15s'
 
       - name: Add RID to .env
         run: ./add-rid-to-env.sh
         working-directory: docker
 
       - name: Install dependencies
-        run: yarn install
+        run: npm install
 
       - name: Run tests
         run: npm test
