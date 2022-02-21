@@ -34,8 +34,12 @@ describe('BlockchainClient', () => {
       await blockchainClient.query<string>().name('say_hello').addParameter('name', 'Viktor').send();
 
       fail();
-    } catch (error) {
-      expect(error.message).toContain('Not Found');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        expect(error.message).toContain('Not Found');
+      } else {
+        fail('Expected error to be instance of Error');
+      }
     }
   });
 
@@ -47,7 +51,11 @@ describe('BlockchainClient', () => {
 
       fail();
     } catch (error) {
-      expect(error.message).toContain('404');
+      if (error instanceof Error) {
+        expect(error.message).toContain('404');
+      } else {
+        fail('Expected error to be instance of Error');
+      }
     }
   });
 
