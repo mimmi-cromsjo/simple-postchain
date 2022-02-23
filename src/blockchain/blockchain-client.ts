@@ -52,6 +52,10 @@ export class BlockchainClient {
       .then((json: any) => json[0].height);
   }
 
+  public setLogLevel(level: number): void {
+    pc.util.setLogLevel(level);
+  }
+
   public static initialize(nodeApiUrl: string): BlockchainClient {
     return new BlockchainClient(nodeApiUrl, '');
   }
@@ -87,6 +91,8 @@ export class BlockchainClient {
 
     const rest = pc.restClient.createRestClient(this.nodeUrl, this.brid, 5);
     this.gtx = pc.gtxClient.createClient(rest, Buffer.from(this.brid, 'hex'), []);
+
+    this.setLogLevel(-1);
 
     return this.gtx;
   }

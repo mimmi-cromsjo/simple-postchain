@@ -4,7 +4,7 @@
   "description": "Helper library for communicating with a postchain node",
   "dependencies": {
     "node-fetch": "^2.6.1",
-    "postchain-client": "0.10.4",
+    "postchain-client": "0.10.5",
     "typescript": "^4.1.3"
   },
   "main": "lib/index.js",
