@@ -72,6 +72,18 @@ export class Transaction {
 
     return tx.postAndWaitConfirmation();
   }
+
+  public getOperations(): Operation[] {
+    return this.operations.slice();
+  }
+
+  public getSigners(): Buffer[] {
+    if (this.rawTxSigners.length > 0) {
+      return this.rawTxSigners.slice();
+    }
+
+    return [...this.signers].map((kp) => kp.publicKey);
+  }
 }
 
 interface Operation {
