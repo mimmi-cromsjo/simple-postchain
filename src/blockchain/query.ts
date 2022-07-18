@@ -20,9 +20,17 @@ export class Query<T> {
     return this;
   }
 
+  public getName(): string {
+    return this.queryName;
+  }
+
   public addParameter(key: string, value: unknown): Query<T> {
     this.parameters.set(key, value);
     return this;
+  }
+
+  public getParameters(): Map<string, unknown> {
+    return new Map(this.parameters);
   }
 
   public async send(): Promise<T> {
