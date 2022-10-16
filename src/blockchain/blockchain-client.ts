@@ -69,11 +69,19 @@ export class BlockchainClient {
   }
 
   private static getBrid(nodeApiUrl: string, chainId: number): Promise<string> {
-    const url = `${nodeApiUrl}/brid/iid_${chainId}`;
-    return fetch(url).then((response: Response) => {
-      if (response.ok) return response.text();
-      throw new Error(`Error resolving BRID for chainId ${chainId}, reason: ${response.statusText}`);
-    });
+    if (chainId >= 0) {
+      const url = `${nodeApiUrl}/brid/iid_${chainId}`;
+      return fetch(url).then((response: Response) => {
+        if (response.ok) return response.text();
+        throw new Error(`Error resolving BRID for chainId ${chainId}, reason: ${response.statusText}`);
+      });
+    } else {
+      const url = `${nodeApiUrl}/_debug`;
+      return fetch(url).then((response: Response) => {
+        if (response.ok) return response.json().then((json) => json.blockchain[json.blockchain.length - 1].brid);
+        throw new Error(`Error resolving BRID for chainId ${chainId}, reason: ${response.statusText}`);
+      });
+    }
   }
 
   private async ensureBrid(): Promise<void> {
