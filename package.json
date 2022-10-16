@@ -1,6 +1,6 @@
 {
   "name": "simple-postchain",
-  "version": "0.2.4",
+  "version": "0.3.3",
   "description": "Helper library for communicating with a postchain node",
   "dependencies": {
     "node-fetch": "^2.6.1",
