@@ -34,10 +34,14 @@ export class Query<T> {
   }
 
   public async send(): Promise<T> {
-    const obj = {};
-    // @ts-ignore
+    type QueryObject = {
+      type: string;
+      [arg: string]: any;
+    };
+    const obj: QueryObject = { type: this.queryName };
     this.parameters.forEach((value: unknown, key: string) => (obj[key] = value));
     const gtx = await this.gtxRetriever();
-    return gtx.query(this.queryName, obj);
+
+    return gtx.query(obj);
   }
 }

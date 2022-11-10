@@ -4,7 +4,7 @@
 
 import { uuidv4 } from '../utils/uuidv4';
 import { KeyPair } from './key-pair';
-const pc = require('postchain-client');
+import * as pc from 'postchain-client-dev';
 
 export class Transaction {
   private readonly gtxRetriever: () => any;
@@ -35,7 +35,9 @@ export class Transaction {
     });
 
     tx.rawTxSigners = deserializedTx.signers;
-    tx.rawTxSignatures = deserializedTx.signatures;
+    if (deserializedTx.signatures) {
+      tx.rawTxSignatures = deserializedTx.signatures;
+    }
 
     return tx;
   }
