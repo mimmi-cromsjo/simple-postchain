@@ -2,7 +2,7 @@ import { Query } from './query';
 import { KeyPair } from './key-pair';
 import { Transaction } from './transaction';
 
-const pc = require('postchain-client');
+import * as pc from 'postchain-client-dev';
 const fetch = require('node-fetch');
 
 export class BlockchainClient {
@@ -23,10 +23,10 @@ export class BlockchainClient {
   public createKeyPair(privateKey?: string): KeyPair {
     if (privateKey) {
       const key = Buffer.from(privateKey, 'hex');
-      return { privateKey: key, publicKey: pc.util.createPublicKey(key) };
+      return { privateKey: key, publicKey: pc.encryption.createPublicKey(key) };
     }
-    const kp = pc.util.makeKeyPair();
-    return { publicKey: pc.util.toBuffer(kp.pubKey), privateKey: pc.util.toBuffer(kp.privKey) };
+    const kp = pc.encryption.makeKeyPair();
+    return { publicKey: kp.pubKey, privateKey: kp.privKey };
   }
 
   public query<T>(): Query<T> {
@@ -53,7 +53,7 @@ export class BlockchainClient {
   }
 
   public setLogLevel(level: number): void {
-    pc.util.setLogLevel(level);
+    pc.logger.setLogLevel(level);
   }
 
   public static initialize(nodeApiUrl: string): BlockchainClient {
@@ -98,7 +98,7 @@ export class BlockchainClient {
     }
 
     const rest = pc.restClient.createRestClient(this.nodeUrl, this.brid, 5);
-    this.gtx = pc.gtxClient.createClient(rest, Buffer.from(this.brid, 'hex'), []);
+    this.gtx = pc.gtxClient.createClient(rest, this.brid, []);
 
     this.setLogLevel(-1);
 

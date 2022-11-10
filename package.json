@@ -5,6 +5,7 @@
   "dependencies": {
     "node-fetch": "^2.6.1",
     "postchain-client": "0.10.5",
+    "postchain-client-dev": "file:~/postchain-client-0.1.0.tgz",
     "typescript": "^4.1.3"
   },
   "main": "lib/index.js",
